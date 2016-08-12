@@ -1,0 +1,22 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Install  apache, php and a index.php file
+  hosts: webservers, other_servers
+  tasks:
+    - name: Install apache and php module
+      apt: name={{item}} state=latest
+      with_items:
+        - apache2
+        - libapache2-mod-php
+      notify: Restart apache
+
+    - name: remove old index.html default file
+      file: path=/var/www/html/index.html state=absent
+    - name: create index.php file
+      copy: dest=/var/www/html/index.php content="<?php echo 'Hello World!!'?>"
+      notify: Restart apache
+    - name: enable apache at start
+      service: name=apache2 enabled=yes 
+  handlers:
+    - name: Restart apache
+      service: name=apache2 state=restarted
